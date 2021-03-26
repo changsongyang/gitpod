@@ -79,6 +79,10 @@ export class GitpodHostUrl {
         return this.with(url => ({ protocol: url.protocol === 'https:' ? 'wss:' : 'ws:' }));
     }
 
+    asWebsocketApiEndpointV1(): GitpodHostUrl {
+        return this.withApi({ pathname: "/v1" }).asWebsocket();
+    }
+
     asDashboard(): GitpodHostUrl {
         return this.with(url => ({ pathname: '/workspaces/' }));
     }

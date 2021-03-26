@@ -457,7 +457,7 @@ func workspaceMustExistHandler(config *Config, infoProvider WorkspaceInfoProvide
 			info := infoProvider.WorkspaceInfo(req.Context(), coords.ID)
 			if info == nil {
 				log.WithFields(log.OWI("", coords.ID, "")).Info("no workspace info found - redirecting to start")
-				redirectURL := fmt.Sprintf("%s://%s/start/#%s", config.GitpodInstallation.Scheme, config.GitpodInstallation.HostName, coords.ID)
+				redirectURL := fmt.Sprintf("%s://%s/start/#%s", config.GitpodInstallation.Scheme, config.GitpodInstallation.DashboardHostName, coords.ID)
 				http.Redirect(resp, req, redirectURL, 302)
 				return
 			}
@@ -624,7 +624,7 @@ func servePortNotFoundPage(config *Config) (http.Handler, error) {
 	if err != nil {
 		return nil, err
 	}
-	page = bytes.ReplaceAll(page, []byte("https://gitpod.io"), []byte(fmt.Sprintf("%s://%s", config.GitpodInstallation.Scheme, config.GitpodInstallation.HostName)))
+	page = bytes.ReplaceAll(page, []byte("https://gitpod.io"), []byte(fmt.Sprintf("%s://%s", config.GitpodInstallation.Scheme, config.GitpodInstallation.HostName))) // TODO(geropl) This should maybe be DashboardHostName as well. Check how this works in new dashboard!
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)

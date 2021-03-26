@@ -63,6 +63,7 @@ var (
 		},
 		GitpodInstallation: &GitpodInstallation{
 			HostName:            "test-domain.com",
+			DashboardHostName:   "dashboard.test-domain.com",
 			Scheme:              "https",
 			WorkspaceHostSuffix: ".ws.test-domain.com",
 		},
@@ -392,9 +393,9 @@ func TestRoutes(t *testing.T) {
 				Status: http.StatusFound,
 				Header: http.Header{
 					"Content-Type": {"text/html; charset=utf-8"},
-					"Location":     {"https://test-domain.com/start/#blabla-smelt-9ba20cc1"},
+					"Location":     {"https://dashboard.test-domain.com/start/#blabla-smelt-9ba20cc1"},
 				},
-				Body: ("<a href=\"https://test-domain.com/start/#blabla-smelt-9ba20cc1\">Found</a>.\n\n"),
+				Body: ("<a href=\"https://dashboard.test-domain.com/start/#blabla-smelt-9ba20cc1\">Found</a>.\n\n"),
 			},
 		},
 		{
@@ -406,9 +407,9 @@ func TestRoutes(t *testing.T) {
 				Status: http.StatusFound,
 				Header: http.Header{
 					"Content-Type": {"text/html; charset=utf-8"},
-					"Location":     {"https://test-domain.com/start/#blabla-smelt-9ba20cc1"},
+					"Location":     {"https://dashboard.test-domain.com/start/#blabla-smelt-9ba20cc1"},
 				},
-				Body: ("<a href=\"https://test-domain.com/start/#blabla-smelt-9ba20cc1\">Found</a>.\n\n"),
+				Body: ("<a href=\"https://dashboard.test-domain.com/start/#blabla-smelt-9ba20cc1\">Found</a>.\n\n"),
 			},
 		},
 		{

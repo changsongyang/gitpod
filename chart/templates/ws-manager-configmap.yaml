@@ -61,6 +61,7 @@ data:
             },
             "heartbeatInterval": "30s",
             "hostURL": "{{- template "gitpod.scheme" $this -}}://{{ $.Values.hostname }}",
+            "apiHostUrl": "{{- template "gitpod.scheme" $this -}}://{{- $gp.apiHostName | default $gp.hostname -}}",
             "initProbe": {
                 "timeout": "1s"
             },

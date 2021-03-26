@@ -187,7 +187,7 @@ async function build(context, version) {
       domain,
       url,
       shortnameOverride: wsCluster ? wsCluster.name : undefined,
-      dashboardHostNameOverride: wsCluster ? `${wsCluster.subdomain}.staging.gitpod-dev.com` : undefined,
+      hostNameOverride: wsCluster ? `${wsCluster.subdomain}.staging.gitpod-dev.com` : undefined,
       additionalWsSubdomains: wsCluster ? [...additionalWsSubdomains, wsCluster.name] : additionalWsSubdomains,
     };
     await deployToDev(deploymentConfig, workspaceFeatureFlags, dynamicCPULimits, registryFacadeHandover, storage);
@@ -310,7 +310,9 @@ async function deployToDev(deploymentConfig, workspaceFeatureFlags, dynamicCPULi
     if (deploymentConfig.shortnameOverride) {
         flags+=` --set installation.shortname=${deploymentConfig.shortnameOverride}`;
     }
-    if (deploymentConfig.dashboardHostNameOverride) {
+    if (deploymentConfig.hostNameOverride) {
+        flags+=` --set dashboardHostName=${deploymentConfig.hostNameOverride}`;
+        flags+=` --set apiHostName=${deploymentConfig.hostNameOverride}`;
         flags+=` --set components.wsManagerBridge.disabled=true`;
         flags+=` --set components.proxy.svcTargetComp=ws-proxy`;
     }

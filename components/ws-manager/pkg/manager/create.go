@@ -522,6 +522,7 @@ func (m *Manager) createWorkspaceEnvironment(startContext *startWorkspaceContext
 	result = append(result, corev1.EnvVar{Name: "GITPOD_THEIA_PORT", Value: strconv.Itoa(int(startContext.IDEPort))})
 	result = append(result, corev1.EnvVar{Name: "THEIA_WORKSPACE_ROOT", Value: getWorkspaceRelativePath(spec.WorkspaceLocation)})
 	result = append(result, corev1.EnvVar{Name: "GITPOD_HOST", Value: m.Config.GitpodHostURL})
+	result = append(result, corev1.EnvVar{Name: "GITPOD_API_HOST", Value: m.Config.GitpodApiHostURL})
 	result = append(result, corev1.EnvVar{Name: "GITPOD_WORKSPACE_URL", Value: startContext.WorkspaceURL})
 	result = append(result, corev1.EnvVar{Name: "THEIA_SUPERVISOR_TOKEN", Value: m.Config.TheiaSupervisorToken})
 	result = append(result, corev1.EnvVar{Name: "THEIA_SUPERVISOR_ENDPOINT", Value: fmt.Sprintf(":%d", startContext.SupervisorPort)})

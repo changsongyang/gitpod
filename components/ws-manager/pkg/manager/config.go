@@ -67,8 +67,10 @@ type Configuration struct {
 	WorkspaceHostPath string `json:"workspaceHostPath"`
 	// HeartbeatInterval is the time in seconds in which Theia sends a heartbeat if the user is active
 	HeartbeatInterval util.Duration `json:"heartbeatInterval"`
-	// Is the URL under which Gitpod is installed (e.g. https://gitpod.io)
+	// Is the base URL under which this Gitpod cluster is installed (e.g. https://gitpod.io)
 	GitpodHostURL string `json:"hostURL"`
+	// Is the URL under which the API is available the workspaces in this cluster should use
+	GitpodApiHostURL string `json:"apiHostUrl"`
 	// EventTraceLog is a path to file where we'll write the monitor event trace log to
 	EventTraceLog string `json:"eventTraceLog,omitempty"`
 	// ReconnectionInterval configures the time we wait until we reconnect to the various other services

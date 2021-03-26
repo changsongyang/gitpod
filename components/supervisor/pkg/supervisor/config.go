@@ -184,8 +184,11 @@ type WorkspaceConfig struct {
 	// WorkspaceInstanceID is the instance ID of the workspace
 	WorkspaceInstanceID string `env:"GITPOD_INSTANCE_ID"`
 
-	// GitpodHost points to the Gitpod API server we're to talk to
+	// GitpodHost points to where the Gitpod cluster is installed
 	GitpodHost string `env:"GITPOD_HOST"`
+
+	// GitpodApiHost points to the Gitpod API server we're to talk to
+	GitpodApiHost string `env:"GITPOD_API_HOST"`
 
 	// GitpodTasks is the task configuration of the workspace
 	GitpodTasks string `env:"GITPOD_TASKS"`
@@ -277,7 +280,7 @@ func (c WorkspaceConfig) GetTokens(downloadOTS bool) ([]WorkspaceGitpodToken, er
 
 // GitpodAPIEndpoint produces the data required to connect to the Gitpod API
 func (c WorkspaceConfig) GitpodAPIEndpoint() (endpoint, host string, err error) {
-	gphost, err := url.Parse(c.GitpodHost)
+	gphost, err := url.Parse(c.GitpodApiHost)
 	if err != nil {
 		return
 	}
