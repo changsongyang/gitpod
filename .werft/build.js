@@ -313,6 +313,8 @@ async function deployToDev(deploymentConfig, workspaceFeatureFlags, dynamicCPULi
 
         flags+=` --set components.proxy.disabled=true`;
         flags+=` --set components.wsProxy.svcName=proxy`;
+        flags+=` --set components.wsProxy.useHTTPS=true`;
+        flags+=` --set components.wsProxy.hostHeader=Host`;
         flags+=` --set components.wsManagerBridge.disabled=true`;
         flags+=` --set components.server.disabled=true`;
         flags+=` --set components.messagebus.disabled=true`;
@@ -327,7 +329,7 @@ async function deployToDev(deploymentConfig, workspaceFeatureFlags, dynamicCPULi
 
         const wsClusterYamlName = "values.wsCluster.yaml";
         exec(`printf "components:\n" > chart/${wsClusterYamlName}`, { slice: "helm"});
-        exec(`printf "  wsProxy:\n    ports:\n      httpProxy:\n        containerPort: 80\n" >> chart/${wsClusterYamlName}`, { slice: "helm" });
+        exec(`printf "  wsProxy:\n    ports:\n      httpProxy:\n        servicePort: 443\n" >> chart/${wsClusterYamlName}`, { slice: "helm" });
         exec(`printf "  contentService:\n    remoteStorage:\n" >> chart/${wsClusterYamlName} \
                 && kubectl -n ${wsCluster.srcNamespace} get cm content-service-config -o yaml \
                     | yq r - data["config.json"] \
