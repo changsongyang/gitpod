@@ -18,7 +18,7 @@ data:
   config.json: |-
     {
         "ingress": {
-            "address": ":8080",
+            "address": ":{{ $comp.ports.httpProxy.containerPort }}",
             "https": {{ $comp.useHTTPS }},
             "header": "x-wsproxy-host"
         },

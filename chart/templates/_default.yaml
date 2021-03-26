@@ -46,7 +46,7 @@ spec:
   {{- end }}
   selector:
     app: {{ template "gitpod.fullname" $ }}
-    component: {{ $comp.svcTargetComp | default $comp.name }}
+    component: {{ $comp.name }}
     kind: pod
     stage: {{ $gp.installation.stage }}
   type: {{ $comp.serviceType | default "ClusterIP" }}
