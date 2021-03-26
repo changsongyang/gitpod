@@ -73,15 +73,10 @@ async function build(context, version) {
         let parts = wsClusterRaw.split("|");
         if (parts.length === 2) {
             wsCluster = {
-                name: parts[0],
+                shortname: parts[0],
                 subdomain: parts[1]
             };
         }
-    }
-    const additionalWsSubdomainsRaw = buildConfig["add-ws-subdomains"];  // comma-separated list of additional workspace subdomains
-    let additionalWsSubdomains = [];
-    if (additionalWsSubdomainsRaw) {
-        additionalWsSubdomains = additionalWsSubdomainsRaw.split(",");
     }
 
     werft.log("job config", JSON.stringify({
@@ -98,7 +93,6 @@ async function build(context, version) {
         storage: storage,
         withIntegrationTests,
         wsCluster,
-        additionalWsSubdomains,
     }));
 
     /**
@@ -175,6 +169,14 @@ async function build(context, version) {
 
         return
     }
+
+    if (wsCluster) {
+        wsCluster = {
+            ...wsCluster,
+            srcNamespace: `staging-${wsCluster.subdomain}`,
+            hostNameOverride: `${wsCluster.subdomain}.staging.gitpod-dev.com`,
+        }
+    }
     
     const destname = version.split(".")[0];
     const namespace = `staging-${destname}`;
@@ -186,9 +188,7 @@ async function build(context, version) {
       namespace,
       domain,
       url,
-      shortnameOverride: wsCluster ? wsCluster.name : undefined,
-      hostNameOverride: wsCluster ? `${wsCluster.subdomain}.staging.gitpod-dev.com` : undefined,
-      additionalWsSubdomains: wsCluster ? [...additionalWsSubdomains, wsCluster.name] : additionalWsSubdomains,
+      wsCluster,
     };
     await deployToDev(deploymentConfig, workspaceFeatureFlags, dynamicCPULimits, registryFacadeHandover, storage);
 
@@ -215,14 +215,13 @@ async function deployToDev(deploymentConfig, workspaceFeatureFlags, dynamicCPULi
         namespaceRecreatedResolve = resolve;
     });
     const certificatePromise = (async function() {
-        const additionalWsSubdomains = deploymentConfig.additionalWsSubdomains || [];
+        const additionalWsSubdomains = deploymentConfig.wsCluster ? [deploymentConfig.wsCluster.shortname] : [];
         await issueCertficate(werft, ".werft/certs", GCLOUD_SERVICE_ACCOUNT_PATH, namespace, "gitpod-dev.com", domain, "34.76.116.244", additionalWsSubdomains);
         
         werft.log('certificate', 'waiting for preview env namespace being re-created...');
         await namespaceRecreatedPromise;
 
-        const fromNamespace = deploymentConfig.certificateSrcOverride || namespace;
-        await installCertficate(werft, fromNamespace, namespace, "proxy-config-certificates");
+        await installCertficate(werft, namespace, namespace, "proxy-config-certificates");
     })();
 
 
@@ -260,8 +259,8 @@ async function deployToDev(deploymentConfig, workspaceFeatureFlags, dynamicCPULi
         exec(`kubectl get secret preview-envs-authproviders --namespace=keys -o yaml \
                 | yq r - data.authProviders \
                 | base64 -d -w 0 \
-                > authProviders`, {silent: true}).stdout.trim();
-        exec(`yq merge --inplace .werft/values.dev.yaml ./authProviders`)
+                > authProviders`, { slice: "authProviders" });
+        exec(`yq merge --inplace .werft/values.dev.yaml ./authProviders`, { slice: "authProviders" })
         werft.done('authProviders');
     } catch (err) {
         werft.fail('authProviders', err);
@@ -307,14 +306,26 @@ async function deployToDev(deploymentConfig, workspaceFeatureFlags, dynamicCPULi
         flags+=` --set components.registryFacade.handover.enabled=true`;
         flags+=` --set components.registryFacade.handover.socket=/var/lib/gitpod/registry-facade-${namespace}`;
     }
-    if (deploymentConfig.shortnameOverride) {
-        flags+=` --set installation.shortname=${deploymentConfig.shortnameOverride}`;
-    }
-    if (deploymentConfig.hostNameOverride) {
+    if (deploymentConfig.wsCluster) {
+        const wsClusterYaml = "values.wsCluster.yaml";
+        flags+=` --set installation.shortname=${deploymentConfig.shortname}`;
         flags+=` --set dashboardHostName=${deploymentConfig.hostNameOverride}`;
         flags+=` --set apiHostName=${deploymentConfig.hostNameOverride}`;
-        flags+=` --set components.wsManagerBridge.disabled=true`;
+
         flags+=` --set components.proxy.svcTargetComp=ws-proxy`;
+        flags+=` --set components.wsManagerBridge.disabled=true`;
+        flags+=` --set components.server.disabled=true`;
+        flags+=` --set components.messagebus.disabled=true`;
+        flags+=` --set components.dashboard.disabled=true`;
+
+        exec(`printf "components:\n  contentService:\n    remoteStorage:\n" > chart/${wsClusterYaml} \
+                && kubectl -n ${wsCluster.srcNamespace} get cm content-service-config -o yaml \
+                    | yq r - data["config.json"] \
+                    | yq r -P - storage \
+                    | sed 's/^/      /' \
+                    | sed 's/${destname}/${wsCluster.subdomain}/g' >> chart/${wsClusterYaml}`, { slice: "helm" })
+
+        flags+=` -f ./${wsClusterYaml}`;
     }
 
     // const pathToVersions = `${shell.pwd().toString()}/versions.yaml`;
