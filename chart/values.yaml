@@ -482,10 +482,7 @@ components:
       memory: 64Mi
     replicas: 1
     useHTTPS: false
-    ingress:
-      portRange:
-        start: 10000
-        end: 11000
+    hostHeader: "x-wsproxy-host"
     ports:
       httpProxy:
         expose: true

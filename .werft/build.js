@@ -312,13 +312,27 @@ async function deployToDev(deploymentConfig, workspaceFeatureFlags, dynamicCPULi
         flags+=` --set dashboardHostName=${deploymentConfig.hostNameOverride}`;
         flags+=` --set apiHostName=${deploymentConfig.hostNameOverride}`;
 
-        flags+=` --set components.proxy.svcTargetComp=ws-proxy`;
+        flags+=` --set components.proxy.disabled=true`;
+        flags+=` --set components.wsProxy.svcName=proxy`;
+        flags+=` --set components.wsProxy.useHTTPS=true`;
+        flags+=` --set components.wsProxy.hostHeader=Host`;
+        
         flags+=` --set components.wsManagerBridge.disabled=true`;
         flags+=` --set components.server.disabled=true`;
         flags+=` --set components.messagebus.disabled=true`;
         flags+=` --set components.dashboard.disabled=true`;
+        flags+=` --set components.dbMigrations.enabled=false`;
+        flags+=` --set components.db.autoMigrate=false`;
+        flags+=` --set components.imageBuilder.disabled=true`;
 
-        exec(`printf "components:\n  contentService:\n    remoteStorage:\n" > chart/${wsClusterYaml} \
+        flags+=` --set minio.enabled=false`;
+        flags+=` --set mysql.enabled=false`;
+        flags+=` --set docker-registry.enabled=false`;
+
+        const wsClusterYamlName = "values.wsCluster.yaml";
+        exec(`printf "components:\n" > chart/${wsClusterYamlName}`, { slice: "helm"});
+        exec(`printf "  wsProxy:\n    ports:\n      httpProxy:\n        servicePort: 443\n" >> chart/${wsClusterYamlName}`, { slice: "helm" });
+        exec(`printf "  contentService:\n    remoteStorage:\n" >> chart/${wsClusterYamlName} \
                 && kubectl -n ${wsCluster.srcNamespace} get cm content-service-config -o yaml \
                     | yq r - data["config.json"] \
                     | yq r -P - storage \
