@@ -5,12 +5,14 @@
 package cmd
 
 import (
+	"context"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/google/tcpproxy"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/cobra"
@@ -18,6 +20,7 @@ import (
 	"github.com/gitpod-io/gitpod/common-go/log"
 	"github.com/gitpod-io/gitpod/common-go/pprof"
 	"github.com/gitpod-io/gitpod/ws-proxy/pkg/proxy"
+	"github.com/gitpod-io/gitpod/ws-proxy/pkg/utils"
 )
 
 var jsonLog bool
@@ -93,11 +96,26 @@ var runCmd = &cobra.Command{
 			}()
 		}
 
+		ctx, cancel := context.WithCancel(context.Background())
+		if len(cfg.WSManagerProxy.ListenAddress) > 0 {
+			go func() {
+				tcpProxyListenAddr := cfg.WSManagerProxy.ListenAddress
+				wsManagerAddr := cfg.WorkspaceInfoProviderConfig.WsManagerAddr
+				refillInterval := time.Duration(cfg.WSManagerProxy.RateLimiter.RefillInterval)
+				bucketSize := cfg.WSManagerProxy.RateLimiter.BucketSize
+				err := startWSManagerTCPProxy(ctx, tcpProxyListenAddr, wsManagerAddr, refillInterval, bucketSize)
+				if err != nil {
+					log.WithError(err).Fatal("starting ws-manger TCP proxy failed")
+				}
+			}()
+		}
+
 		log.Info("🚪 ws-proxy is up and running")
 		sigChan := make(chan os.Signal, 1)
 		signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 		<-sigChan
 		log.Info("received SIGTERM, ws-proxy is stopping...")
+		cancel()
 
 		defer func() {
 			log.Info("ws-proxy stopped.")
@@ -107,4 +125,12 @@ var runCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(runCmd)
+}
+
+func startWSManagerTCPProxy(ctx context.Context, listenAddr string, wsManagerAddr string, refillInterval time.Duration, bucketSize int) error {
+	var p tcpproxy.Proxy
+	p.AddRoute(listenAddr, tcpproxy.To(wsManagerAddr))
+	p.ListenFunc = utils.NewRateLimitedListen(ctx, refillInterval, bucketSize)
+	log.Infof("Forwarding ws-manager traffic: %s -> %s\n", listenAddr, wsManagerAddr)
+	return p.Run()
 }

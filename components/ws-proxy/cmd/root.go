@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/spf13/cobra"
@@ -60,6 +61,7 @@ type Config struct {
 	PProfAddr                   string                            `json:"pprofAddr"`
 	PrometheusAddr              string                            `json:"prometheusAddr"`
 	ReadinessProbeAddr          string                            `json:"readinessProbeAddr"`
+	WSManagerProxy              WSManagerProxyConfig              `json:"wsManagerProxy"`
 }
 
 // Validate validates the configuration to catch issues during startup and not at runtime
@@ -71,6 +73,9 @@ func (c *Config) Validate() error {
 		return err
 	}
 	if err := c.WorkspaceInfoProviderConfig.Validate(); err != nil {
+		return err
+	}
+	if err := c.WSManagerProxy.Validate(); err != nil {
 		return err
 	}
 
@@ -94,6 +99,37 @@ func (c *HostBasedIngressConfig) Validate() error {
 	)
 }
 
+// WSManagerProxyConfig configures the ws-manager TCP proxy
+type WSManagerProxyConfig struct {
+	ListenAddress string            `json:"listenAddress"`
+	RateLimiter   RateLimiterConfig `json:"rateLimiter"`
+}
+
+// Validate validates this config
+func (c *WSManagerProxyConfig) Validate() error {
+	if c != nil && len(c.ListenAddress) > 0 {
+		return c.RateLimiter.Validate()
+	}
+	return nil
+}
+
+// RateLimiterConfig configures a rate limiter
+type RateLimiterConfig struct {
+	RefillInterval Duration `json:"refillInterval"`
+	BucketSize     int      `json:"bucketSize"`
+}
+
+// Validate validates this config
+func (c *RateLimiterConfig) Validate() error {
+	if c == nil {
+		return xerrors.Errorf("rate limiter config is mandatory")
+	}
+	return validation.ValidateStruct(c,
+		validation.Field(&c.RefillInterval, validation.Required),
+		validation.Field(&c.BucketSize, validation.Required),
+	)
+}
+
 // getConfig loads and validates the configuration
 func getConfig(fn string) (*Config, error) {
 	fc, err := os.ReadFile(fn)
@@ -113,4 +149,31 @@ func getConfig(fn string) (*Config, error) {
 	}
 
 	return &cfg, nil
+}
+
+// Duration is a json-unmarshallable wrapper for time.Duration.
+// See https://stackoverflow.com/questions/48050945/how-to-unmarshal-json-into-durations
+type Duration time.Duration
+
+// UnmarshalJSON unmarshales a duration using ParseDuration
+func (d *Duration) UnmarshalJSON(b []byte) error {
+	var v interface{}
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+
+	switch value := v.(type) {
+	case float64:
+		*d = Duration(time.Duration(value))
+		return nil
+	case string:
+		tmp, err := time.ParseDuration(value)
+		if err != nil {
+			return err
+		}
+		*d = Duration(tmp)
+		return nil
+	default:
+		return xerrors.New("invalid duration")
+	}
 }
