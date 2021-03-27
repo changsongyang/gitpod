@@ -355,8 +355,18 @@ function GitIntegrations() {
             </Modal>
         )}
 
-        <h3 className="flex-grow self-center">Git Integrations</h3>
-        <h2>Manage git integrations for GitLab or GitHub self-hosted instances.</h2>
+        <div className="flex items-start sm:justify-between mb-2">
+            <div>
+                <h3>Git Integrations</h3>
+                <h2 className="text-gray-500">Manage git integrations for GitLab or GitHub self-hosted instances.</h2>
+            </div>
+            {providers.length !== 0
+            ?
+            <div className="mt-3 flex mt-0">
+                <button onClick={() => setModal({ mode: "new" })} className="ml-2 font-medium">New Integration</button>
+            </div>
+            : null}
+        </div>
 
         {providers && providers.length === 0 && (
             <div className="w-full flex h-80 mt-2 rounded-xl bg-gray-100">
@@ -392,11 +402,6 @@ function GitIntegrations() {
                 </div>
             ))}
         </div>
-        {providers && providers.length > 0 && (
-            <div className="flex justify-start mt-6">
-                <button className="h-full" onClick={() => setModal({ mode: "new" })}>New Git Integration</button>
-            </div>
-        )}
     </div>);
 }
 
