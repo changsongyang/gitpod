@@ -369,7 +369,7 @@ function GitIntegrations() {
         )}
         <div className="flex flex-col pt-6 space-y-2">
             {providers && providers.map(ap => (
-                <div key={"ap-" + ap.id} className="flex-grow flex flex-row hover:bg-gray-100 rounded-xl h-16 w-full transition ease-in-out">
+                <div key={"ap-" + ap.id} className="flex-grow flex flex-row hover:bg-gray-100 rounded-xl h-16 w-full transition ease-in-out group">
 
                     <div className="px-4 self-center w-1/12">
                         <div className={"rounded-full w-3 h-3 text-sm align-middle " + (ap.status === "verified" ? "bg-green-500" : "bg-gray-400")}>
@@ -382,7 +382,7 @@ function GitIntegrations() {
                     <div className="p-0 my-auto flex flex-col w-7/12">
                         <span className="my-auto truncate text-gray-500 overflow-ellipsis">{ap.host}</span>
                     </div>
-                    <div className="my-auto flex w-1/12 pl-8">
+                    <div className="my-auto flex w-1/12 pl-8 opacity-0 group-hover:opacity-100">
                         <div className="self-center hover:bg-gray-200 rounded-md cursor-pointer w-8">
                             <ContextMenu menuEntries={gitProviderMenu(ap)}>
                                 <img className="w-8 h-8 p-1" src={ThreeDots} alt="Actions" />
