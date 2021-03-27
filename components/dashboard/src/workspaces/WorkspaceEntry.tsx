@@ -100,7 +100,7 @@ export function WorkspaceEntry({ desc, model }: { desc: WorkspaceInfo, model: Wo
         setChangesModalVisible(true);
     }
     return <div>
-        <a className="rounded-xl whitespace-nowrap flex space-x-2 py-6 px-6 w-full justify-between hover:bg-gray-100 focus:bg-gitpod-kumquat-light cursor-pointer group" href={startUrl.toString()}>
+        <a className="rounded-xl whitespace-nowrap flex space-x-2 py-6 px-6 w-full justify-between hover:bg-gray-100 focus:bg-gitpod-kumquat-light cursor-pointer transition ease-in-out group" href={startUrl.toString()}>
             <div className="pr-3 self-center">
                 <div className={stateClassName}>
                     &nbsp;

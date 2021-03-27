@@ -258,7 +258,7 @@ function GitProviders() {
     <h2>Manage permissions for git providers.</h2>
         <div className="flex flex-col pt-6 space-y-2">
             {authProviders && authProviders.map(ap => (
-                <div key={"ap-" + ap.authProviderId} className="flex-grow flex flex-row hover:bg-gray-100 rounded-xl h-16 w-full group">
+                <div key={"ap-" + ap.authProviderId} className="flex-grow flex flex-row hover:bg-gray-100 rounded-xl h-16 w-full transition ease-in-out group">
                     <div className="px-4 self-center w-1/12">
                         <div className={"rounded-full w-3 h-3 text-sm align-middle " + (isConnected(ap.authProviderId) ? "bg-green-500" : "bg-gray-400")}>
                             &nbsp;
@@ -369,7 +369,7 @@ function GitIntegrations() {
         )}
         <div className="flex flex-col pt-6 space-y-2">
             {providers && providers.map(ap => (
-                <div key={"ap-" + ap.id} className="flex-grow flex flex-row hover:bg-gray-100 rounded-xl h-16 w-full">
+                <div key={"ap-" + ap.id} className="flex-grow flex flex-row hover:bg-gray-100 rounded-xl h-16 w-full transition ease-in-out">
 
                     <div className="px-4 self-center w-1/12">
                         <div className={"rounded-full w-3 h-3 text-sm align-middle " + (ap.status === "verified" ? "bg-green-500" : "bg-gray-400")}>

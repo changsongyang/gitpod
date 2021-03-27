@@ -177,7 +177,7 @@ export default function EnvVars() {
                 </div>
                 <div className="flex flex-col">
                     {envVars.map(ev => {
-                        return <div className="rounded-xl whitespace-nowrap flex space-x-2 py-3 px-3 w-full justify-between hover:bg-gray-100 focus:bg-gitpod-kumquat-light group">
+                        return <div className="rounded-xl whitespace-nowrap flex space-x-2 py-3 px-3 w-full justify-between hover:bg-gray-100 focus:bg-gitpod-kumquat-light transition ease-in-out group">
                             <div className="w-5/12 m-auto">{ev.name}</div>
                             <div className="w-5/12 m-auto text-sm text-gray-400">{ev.repositoryPattern}</div>
                             <div className="w-2/12 flex justify-end">
