@@ -10,7 +10,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"path"
 	"sort"
 	"syscall"
 	"time"
@@ -125,23 +124,23 @@ func ExtractTarbal(ctx context.Context, src io.Reader, dst string, opts ...TarOp
 		paths = append(paths, path)
 	}
 	sort.Sort(sort.Reverse(sort.StringSlice(paths)))
+	/*
+		// We need to remap the UID and GID between the host and the container to avoid permission issues.
+		for _, p := range paths {
+			v := m[p]
+			uid := toHostID(v.UID, cfg.UIDMaps)
+			gid := toHostID(v.GID, cfg.GIDMaps)
 
-	// We need to remap the UID and GID between the host and the container to avoid permission issues.
-	for _, p := range paths {
-		v := m[p]
-		uid := toHostID(v.UID, cfg.UIDMaps)
-		gid := toHostID(v.GID, cfg.GIDMaps)
+			if v.IsSymlink {
+				continue
+			}
 
-		if v.IsSymlink {
-			continue
+			err = remapFile(path.Join(dst, p), uid, gid)
+			if err != nil {
+				log.WithError(err).WithField("uid", uid).WithField("gid", gid).WithField("path", p).Warn("cannot chown")
+			}
 		}
-
-		err = remapFile(path.Join(dst, p), uid, gid)
-		if err != nil {
-			log.WithError(err).WithField("uid", uid).WithField("gid", gid).WithField("path", p).Warn("cannot chown")
-		}
-	}
-
+	*/
 	log.WithField("duration", time.Since(start).Milliseconds()).Debug("untar complete")
 	return nil
 }
