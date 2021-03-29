@@ -35,6 +35,8 @@ var (
 )
 
 func TestGetContentLayer(t *testing.T) {
+	t.Skip("skip")
+
 	tests := []struct {
 		Name                string
 		ContentManifestType string
